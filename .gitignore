@@ -1,0 +1,59 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Distribucion / empaquetado
+build/
+dist/
+*.egg-info/
+*.egg
+
+# Entornos virtuales
+.venv/
+venv/
+env/
+ENV/
+
+# Variables de entorno y secretos
+.env
+.env.*
+*.pem
+*.key
+
+# Flask / desarrollo local
+instance/
+*.log
+*.sqlite
+*.db
+
+# Pytest / cobertura
+.pytest_cache/
+.coverage
+htmlcov/
+coverage.xml
+
+# Linters / type checkers
+.mypy_cache/
+.ruff_cache/
+.pytype/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# SO
+.DS_Store
+Thumbs.db
+
+# Editores / IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.project
+.pydevproject
+
+# Opencode
+.opencode/
