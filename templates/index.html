@@ -4,34 +4,58 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tres en Raya</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 </head>
 <body>
+    <div class="container">
     <h1>Tres en Raya</h1>
+
+    <form class="mode-form" action="/mode" method="post">
+        <label>Modo:</label>
+        <select name="modo">
+            <option value="hvh" {% if modo == 'hvh' %}selected{% endif %}>
+                Humano vs Humano
+            </option>
+            <option value="hvai" {% if modo == 'hvai' %}selected{% endif %}>
+                Humano vs IA
+            </option>
+        </select>
+        <button type="submit">Cambiar</button>
+    </form>
 
     {% if terminado %}
         {% if ganador %}
-            <p>Ganador: {{ ganador }}</p>
+            <p class="status">Ganador: {{ ganador }}</p>
         {% else %}
-            <p>Empate.</p>
+            <p class="status">Empate.</p>
         {% endif %}
     {% else %}
-        <p>Turno: {{ turno }}</p>
+        <p class="status">Turno: {{ turno }}</p>
     {% endif %}
 
     {% if mensaje %}
-        <p>{{ mensaje }}</p>
+        <p class="message">{{ mensaje }}</p>
+    {% else %}
+        <p class="message"></p>
     {% endif %}
 
-    <table>
+    {% if modo == 'hvai' %}
+    <div class="metrics">
+        <span>Nodos: {{ nodos }}</span>
+        <span>Tiempo IA: {{ "%.1f"|format(tiempo_ms) }} ms</span>
+    </div>
+    {% endif %}
+
+    <table class="board">
         {% for r in range(3) %}
         <tr>
             {% for c in range(3) %}
-            <td>
+            <td class="cell {% if board[r][c] == 'X' %}cell-x{% elif board[r][c] == 'O' %}cell-o{% endif %}">
                 {% if board[r][c] == ' ' and not terminado %}
                 <form action="/move" method="post">
                     <input type="hidden" name="row" value="{{ r }}">
                     <input type="hidden" name="col" value="{{ c }}">
-                    <button type="submit">&nbsp;</button> 
+                    <button class="cell-button" type="submit">&nbsp;</button>
                 </form>
                 {% else %}
                     {{ board[r][c] }}
@@ -42,8 +66,9 @@
         {% endfor %}
     </table>
 
-    <form action="/reset" method="post">
+    <form class="reset-form" action="/reset" method="post">
         <button type="submit">Reiniciar</button>
     </form>
+    </div>
 </body>
 </html>

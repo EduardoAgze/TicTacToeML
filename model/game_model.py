@@ -26,10 +26,7 @@ class TicTacToeModel:
 
     def reset(self):
         """Vacia el tablero y asigna el turno a X."""
-        self.board = []
-        for _ in range(BOARD_SIZE):
-            fila_nueva = [EMPTY] * BOARD_SIZE
-            self.board.append(fila_nueva)
+        self.board = [[EMPTY] * BOARD_SIZE for _ in range(BOARD_SIZE)]
         self.current_player = PLAYER_X
 
     def is_valid_move(self, move):
@@ -63,17 +60,6 @@ class TicTacToeModel:
                     movimientos.append((row, col))
         return movimientos
 
-    def get_cell(self, row, col):
-        """Devuelve el contenido de una casilla.
-
-        Args:
-            row: Indice de fila (0 a 2).
-            col: Indice de columna (0 a 2).
-
-        Returns:
-            'X', 'O' o ' ' segun el contenido de la casilla.
-        """
-        return self.board[row][col]
 
     def _get_all_lines(self):
         """Devuelve las filas, columnas y diagonales del tablero.
