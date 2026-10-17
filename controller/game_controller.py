@@ -21,6 +21,9 @@ mensaje = ""
 modo = "hvai"
 ultimo_nodos = 0
 ultimo_tiempo_ms = 0.0
+_ml_model = None
+MODOS = ("hvh", "hvai", "hvml")
+MODEL_PATH = "model/tictactoe_dt.joblib"
 
 
 def get_estado():
@@ -76,7 +79,7 @@ def _actualiza_mensaje(resultado):
 
 
 def _juega_ia():
-    """Hace jugar a la IA si toca su turno en modo HvAI."""
+    """Hace jugar a la IA Minimax si toca su turno en modo HvAI."""
     global ultimo_nodos, ultimo_tiempo_ms
     if modo != "hvai":
         return
@@ -88,6 +91,59 @@ def _juega_ia():
     jugada, total = best_move(juego)
     ultimo_tiempo_ms = (time.perf_counter() - inicio) * 1000.0
     ultimo_nodos = total
+    if jugada is None:
+        return
+    _actualiza_mensaje(juego.play_turn(jugada))
+
+
+def _carga_modelo_ml():
+    """Carga el arbol ML una sola vez (lazy, sin romper sin sklearn).
+
+    Returns:
+        Clasificador o None si no existe el archivo.
+    """
+    global _ml_model
+    if _ml_model is not None:
+        return _ml_model
+    try:
+        import joblib
+    except ImportError:
+        return None
+    try:
+        _ml_model = joblib.load(MODEL_PATH)
+    except (OSError, ValueError):
+        return None
+    return _ml_model
+
+
+def _juega_ml():
+    """Hace jugar a la IA ML si toca su turno en modo HvML."""
+    global ultimo_nodos, ultimo_tiempo_ms
+    if modo != "hvml":
+        return
+    if get_estado()[1]:
+        return
+    if juego.current_player != AI_PLAYER:
+        return
+    from model.ml_agent import decode_label, encode_board
+
+    clf = _carga_modelo_ml()
+    inicio = time.perf_counter()
+    jugada = None
+    if clf is not None:
+        try:
+            label = int(clf.predict([encode_board(juego.board)])[0])
+            cand = decode_label(label)
+            if juego.is_valid_move(cand):
+                jugada = cand
+        except (ValueError, IndexError):
+            jugada = None
+    if jugada is None:
+        jugada, _ = best_move(juego)
+        ultimo_nodos = -1
+    else:
+        ultimo_nodos = 0
+    ultimo_tiempo_ms = (time.perf_counter() - inicio) * 1000.0
     if jugada is None:
         return
     _actualiza_mensaje(juego.play_turn(jugada))
@@ -112,6 +168,7 @@ def move():
     _actualiza_mensaje(resultado)
     if resultado == RESULT_CONTINUE:
         _juega_ia()
+        _juega_ml()
 
     return redirect(url_for("index"))
 
@@ -124,7 +181,7 @@ def set_mode():
     """
     global mensaje, modo, ultimo_nodos, ultimo_tiempo_ms
     elegido = request.form.get("modo", "hvai")
-    modo = elegido if elegido in ("hvh", "hvai") else "hvai"
+    modo = elegido if elegido in MODOS else "hvai"
     juego.reset()
     mensaje = ""
     ultimo_nodos = 0
