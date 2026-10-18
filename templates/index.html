@@ -55,7 +55,13 @@
     </div>
     {% endif %}
     {% if modo == 'hvml' %}
-    <p><a href="{{ url_for('static', filename='tree.png') }}">Ver árbol</a></p>
+    <div class="tree-panel">
+        <p class="tree-hint">
+            Árbol de decisión (ruta activa en naranja) ·
+            <a href="{{ url_for('static', filename='tree.png') }}">PNG</a>
+        </p>
+        <svg id="tree-svg" class="tree-svg"></svg>
+    </div>
     {% endif %}
 
     <table class="board">
@@ -82,5 +88,13 @@
         <button type="submit">Reiniciar</button>
     </form>
     </div>
+    {% if modo == 'hvml' and tree %}
+    <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+    <script>
+        window.TREE_DATA = {{ tree | tojson }};
+        window.ACTIVE_PATH = {{ ruta | tojson }};
+    </script>
+    <script src="{{ url_for('static', filename='tree.js') }}"></script>
+    {% endif %}
 </body>
 </html>

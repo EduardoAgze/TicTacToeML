@@ -21,9 +21,12 @@ mensaje = ""
 modo = "hvai"
 ultimo_nodos = 0
 ultimo_tiempo_ms = 0.0
+ultima_ruta = []
 _ml_model = None
+_tree_cache = None
 MODOS = ("hvh", "hvai", "hvml")
 MODEL_PATH = "model/tictactoe_dt.joblib"
+TREE_MAX_DEPTH = 4
 
 
 def get_estado():
@@ -58,6 +61,8 @@ def index():
         modo=modo,
         nodos=ultimo_nodos,
         tiempo_ms=ultimo_tiempo_ms,
+        tree=_get_tree_json() if modo == "hvml" else None,
+        ruta=ultima_ruta if modo == "hvml" else [],
     )
 
 
@@ -116,9 +121,27 @@ def _carga_modelo_ml():
     return _ml_model
 
 
+def _get_tree_json():
+    """Devuelve el arbol exportado a JSON (cacheado).
+
+    Returns:
+        Diccionario del arbol o None si no hay modelo.
+    """
+    global _tree_cache
+    if _tree_cache is not None:
+        return _tree_cache
+    clf = _carga_modelo_ml()
+    if clf is None:
+        return None
+    from model.tree_export import export_tree_json
+
+    _tree_cache = export_tree_json(clf, max_depth=TREE_MAX_DEPTH)
+    return _tree_cache
+
+
 def _juega_ml():
     """Hace jugar a la IA ML si toca su turno en modo HvML."""
-    global ultimo_nodos, ultimo_tiempo_ms
+    global ultimo_nodos, ultimo_tiempo_ms, ultima_ruta
     if modo != "hvml":
         return
     if get_estado()[1]:
@@ -126,18 +149,22 @@ def _juega_ml():
     if juego.current_player != AI_PLAYER:
         return
     from model.ml_agent import decode_label, encode_board
+    from model.tree_export import active_path
 
     clf = _carga_modelo_ml()
+    estado = encode_board(juego.board)
     inicio = time.perf_counter()
     jugada = None
     if clf is not None:
         try:
-            label = int(clf.predict([encode_board(juego.board)])[0])
+            label = int(clf.predict([estado])[0])
+            ultima_ruta = active_path(clf, estado)
             cand = decode_label(label)
             if juego.is_valid_move(cand):
                 jugada = cand
         except (ValueError, IndexError):
             jugada = None
+            ultima_ruta = []
     if jugada is None:
         jugada, _ = best_move(juego)
         ultimo_nodos = -1
@@ -179,13 +206,14 @@ def set_mode():
     Returns:
         Redireccion a `index` con el tablero vacio.
     """
-    global mensaje, modo, ultimo_nodos, ultimo_tiempo_ms
+    global mensaje, modo, ultimo_nodos, ultimo_tiempo_ms, ultima_ruta
     elegido = request.form.get("modo", "hvai")
     modo = elegido if elegido in MODOS else "hvai"
     juego.reset()
     mensaje = ""
     ultimo_nodos = 0
     ultimo_tiempo_ms = 0.0
+    ultima_ruta = []
     return redirect(url_for("index"))
 
 
@@ -195,9 +223,10 @@ def reset():
     Returns:
         Redireccion a `index` con el tablero vacio.
     """
-    global mensaje, ultimo_nodos, ultimo_tiempo_ms
+    global mensaje, ultimo_nodos, ultimo_tiempo_ms, ultima_ruta
     juego.reset()
     mensaje = ""
     ultimo_nodos = 0
     ultimo_tiempo_ms = 0.0
+    ultima_ruta = []
     return redirect(url_for("index"))
