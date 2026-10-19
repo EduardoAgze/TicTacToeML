@@ -125,6 +125,19 @@ class TicTacToeModel:
             or self.is_draw()
         )
 
+    def winner(self):
+        """Devuelve el ganador de la partida.
+
+        Returns:
+            'X' si gano el humano, 'O' si gano la IA, None si no hay
+            ganador todavia o el tablero esta lleno sin ganador.
+        """
+        if self.check_winner(PLAYER_X):
+            return PLAYER_X
+        if self.check_winner(PLAYER_O):
+            return PLAYER_O
+        return None
+
     def make_move(self, move, player):
         """Coloca la ficha del jugador en la posicion indicada.
 

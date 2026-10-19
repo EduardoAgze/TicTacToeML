@@ -3,7 +3,7 @@
 Convencion: Humano = X, IA = O. La puntuacion es desde la vista de la IA.
 """
 
-from model.game_model import BOARD_SIZE, EMPTY, PLAYER_O, PLAYER_X
+from model.game_model import EMPTY, PLAYER_O, PLAYER_X
 
 AI_PLAYER = PLAYER_O
 HUMAN_PLAYER = PLAYER_X
@@ -11,6 +11,18 @@ HUMAN_PLAYER = PLAYER_X
 SCORE_WIN = 10
 SCORE_LOSS = -10
 SCORE_DRAW = 0
+
+# Las 8 lineas ganadoras como coordenadas (fila, columna).
+WINNING_LINES = (
+    ((0, 0), (0, 1), (0, 2)),
+    ((1, 0), (1, 1), (1, 2)),
+    ((2, 0), (2, 1), (2, 2)),
+    ((0, 0), (1, 0), (2, 0)),
+    ((0, 1), (1, 1), (2, 1)),
+    ((0, 2), (1, 2), (2, 2)),
+    ((0, 0), (1, 1), (2, 2)),
+    ((0, 2), (1, 1), (2, 0)),
+)
 
 
 def evaluate(board):
@@ -33,7 +45,7 @@ def evaluate(board):
 
 
 def _wins(board, player):
-    """Comprueba si el jugador completo alguna linea.
+    """Comprueba si el jugador completo alguna de las 8 lineas.
 
     Args:
         board: Matriz de 3x3.
@@ -42,18 +54,10 @@ def _wins(board, player):
     Returns:
         True si el jugador gano, False si no.
     """
-    for i in range(BOARD_SIZE):
-        if all(board[i][c] == player for c in range(BOARD_SIZE)):
-            return True
-        if all(board[r][i] == player for r in range(BOARD_SIZE)):
-            return True
-    if all(board[i][i] == player for i in range(BOARD_SIZE)):
-        return True
-    if all(
-        board[i][BOARD_SIZE - 1 - i] == player for i in range(BOARD_SIZE)
-    ):
-        return True
-    return False
+    return any(
+        all(board[row][col] == player for row, col in line)
+        for line in WINNING_LINES
+    )
 
 
 def _is_full(board):
