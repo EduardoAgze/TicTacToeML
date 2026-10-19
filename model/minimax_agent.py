@@ -35,16 +35,18 @@ def best_move(juego):
 
 
 def _minimax(board, es_maximo, nodos):
-    """Recorre el arbol y devuelve la mejor puntuacion posible.
+    """Recorre el árbol y devuelve la mejor puntuación posible.
 
     Args:
-        board: Matriz de 3x3 que se modifica y revierte in situ.
-        es_maximo: True si toca a la IA (maximiza), False si al
-            humano (minimiza).
-        nodos: Lista de un elemento usada como contador mutable.
+        board: Matriz del tablero, modificada y restaurada mediante
+            backtracking.
+        es_maximo: Indica si juega la IA (True, maximiza) o el humano
+            (False, minimiza).
+        nodos: Lista mutable de un elemento que cuenta los estados
+            explorados.
 
     Returns:
-        Puntuacion +10, -10, 0 segun evaluate().
+        Puntuación devuelta por ``evaluate()``: +10, -10 o 0.
     """
     nodos[0] += 1
 
