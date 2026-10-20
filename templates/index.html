@@ -26,6 +26,24 @@
         <button type="submit">Cambiar</button>
     </form>
 
+    {% if modo == 'hvai' %}
+    <form class="mode-form" action="/dificultad" method="post">
+        <label>Dificultad:</label>
+        <select name="dificultad">
+            <option value="facil" {% if dificultad == 'facil' %}selected{% endif %}>
+                Fácil
+            </option>
+            <option value="medio" {% if dificultad == 'medio' %}selected{% endif %}>
+                Medio
+            </option>
+            <option value="dificil" {% if dificultad == 'dificil' %}selected{% endif %}>
+                Difícil
+            </option>
+        </select>
+        <button type="submit">Cambiar</button>
+    </form>
+    {% endif %}
+
     {% if terminado %}
         {% if ganador %}
             <p class="status">Ganador: {{ ganador }}</p>
@@ -44,6 +62,13 @@
 
     {% if modo in ('hvai', 'hvml') %}
     <div class="metrics">
+        {% if modo == 'hvai' %}
+        <span>Dificultad:
+            {% if dificultad == 'facil' %}Fácil
+            {% elif dificultad == 'medio' %}Medio
+            {% else %}Difícil{% endif %}
+        </span>
+        {% endif %}
         {% if modo == 'hvml' and nodos == 0 %}
         <span>ML directo</span>
         {% elif modo == 'hvml' and nodos == -1 %}
@@ -54,16 +79,6 @@
         <span>Tiempo IA: {{ "%.1f"|format(tiempo_ms) }} ms</span>
     </div>
     {% endif %}
-    {% if modo == 'hvml' %}
-    <div class="tree-panel">
-        <p class="tree-hint">
-            Árbol de decisión (ruta activa en naranja) ·
-            <a href="{{ url_for('static', filename='tree.png') }}">PNG</a>
-        </p>
-        <svg id="tree-svg" class="tree-svg"></svg>
-    </div>
-    {% endif %}
-
     <table class="board">
         {% for r in range(3) %}
         <tr>
@@ -88,13 +103,5 @@
         <button type="submit">Reiniciar</button>
     </form>
     </div>
-    {% if modo == 'hvml' and tree %}
-    <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
-    <script>
-        window.TREE_DATA = {{ tree | tojson }};
-        window.ACTIVE_PATH = {{ ruta | tojson }};
-    </script>
-    <script src="{{ url_for('static', filename='tree.js') }}"></script>
-    {% endif %}
 </body>
 </html>

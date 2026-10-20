@@ -1,6 +1,12 @@
 from flask import Flask
 
-from controller.game_controller import index, move, reset, set_mode
+from controller.game_controller import (
+    index,
+    move,
+    reset,
+    set_dificultad,
+    set_mode,
+)
 
 app = Flask(__name__)
 
@@ -8,6 +14,7 @@ app.add_url_rule("/", view_func=index, methods=["GET"])
 app.add_url_rule("/move", view_func=move, methods=["POST"])
 app.add_url_rule("/reset", view_func=reset, methods=["POST"])
 app.add_url_rule("/mode", view_func=set_mode, methods=["POST"])
+app.add_url_rule("/dificultad", view_func=set_dificultad, methods=["POST"])
 
 
 if __name__ == "__main__":

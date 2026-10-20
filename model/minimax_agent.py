@@ -5,14 +5,16 @@ Solo logica de busqueda, sin Flask ni HTML. Usa backtracking
 """
 
 from model.evaluation import AI_PLAYER, HUMAN_PLAYER, evaluate
-from model.game_model import BOARD_SIZE, EMPTY, TicTacToeModel
+from model.game_model import BOARD_SIZE, EMPTY
 
 
-def best_move(juego):
+def best_move(juego, max_depth=None):
     """Elige la mejor jugada para la IA (O).
 
     Args:
         juego: Instancia de TicTacToeModel con el estado actual.
+        max_depth: Numero maximo de jugadas a mirar, incluida la
+            jugada actual. None busca hasta el final de la partida.
 
     Returns:
         Tupla (movimiento, nodos) donde movimiento es (fila, col)
@@ -22,10 +24,11 @@ def best_move(juego):
     nodos = [0]
     mejor_valor = float("-inf")
     mejor_jugada = None
+    profundidad = None if max_depth is None else max_depth - 1
 
     for move in juego.get_available_moves():
         juego.make_move(move, AI_PLAYER)
-        valor = _minimax(juego.board, False, nodos)
+        valor = _minimax(juego.board, False, nodos, profundidad)
         juego.undo_move(move)
         if valor > mejor_valor:
             mejor_valor = valor
@@ -34,8 +37,8 @@ def best_move(juego):
     return mejor_jugada, nodos[0]
 
 
-def _minimax(board, es_maximo, nodos):
-    """Recorre el árbol y devuelve la mejor puntuación posible.
+def _minimax(board, es_maximo, nodos, profundidad=None):
+    """Recorre el arbol y devuelve la mejor puntuacion posible.
 
     Args:
         board: Matriz del tablero, modificada y restaurada mediante
@@ -44,28 +47,35 @@ def _minimax(board, es_maximo, nodos):
             (False, minimiza).
         nodos: Lista mutable de un elemento que cuenta los estados
             explorados.
+        profundidad: Jugadas que faltan por mirar. None significa
+            buscar hasta el final.
 
     Returns:
-        Puntuación devuelta por ``evaluate()``: +10, -10 o 0.
+        Puntuacion devuelta por ``evaluate()``: +10, -10 o 0. Si se
+        alcanza el limite de profundidad sin ganador, devuelve 0.
     """
     nodos[0] += 1
 
     puntos = evaluate(board)
     if puntos is not None:
         return puntos
+    if profundidad is not None and profundidad <= 0:
+        return 0
+
+    siguiente = None if profundidad is None else profundidad - 1
 
     if es_maximo:
         mejor = float("-inf")
         for row, col in _vacias(board):
             board[row][col] = AI_PLAYER
-            mejor = max(mejor, _minimax(board, False, nodos))
+            mejor = max(mejor, _minimax(board, False, nodos, siguiente))
             board[row][col] = EMPTY
         return mejor
 
     peor = float("inf")
     for row, col in _vacias(board):
         board[row][col] = HUMAN_PLAYER
-        peor = min(peor, _minimax(board, True, nodos))
+        peor = min(peor, _minimax(board, True, nodos, siguiente))
         board[row][col] = EMPTY
     return peor
 
@@ -85,5 +95,3 @@ def _vacias(board):
             if board[row][col] == EMPTY:
                 libres.append((row, col))
     return libres
-
-

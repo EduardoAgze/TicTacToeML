@@ -6,7 +6,6 @@ modelo (`game_model`) y en el servicio (`ai_service`).
 
 from flask import redirect, render_template, request, url_for
 
-from model.ai_service import tree_json
 from model.session import GameSession
 
 session = GameSession()
@@ -26,10 +25,9 @@ def index():
         terminado=session.terminado,
         mensaje=session.mensaje,
         modo=session.modo,
+        dificultad=session.dificultad,
         nodos=session.nodos,
         tiempo_ms=session.tiempo_ms,
-        tree=tree_json() if session.modo == "hvml" else None,
-        ruta=session.ruta if session.modo == "hvml" else [],
     )
 
 
@@ -57,6 +55,16 @@ def set_mode():
         Redireccion a `index` con el tablero vacio.
     """
     session.set_modo(request.form.get("modo", "hvai"))
+    return redirect(url_for("index"))
+
+
+def set_dificultad():
+    """Cambia la dificultad de Minimax (POST /dificultad).
+
+    Returns:
+        Redireccion a `index` con el tablero vacio.
+    """
+    session.set_dificultad(request.form.get("dificultad", "dificil"))
     return redirect(url_for("index"))
 
 

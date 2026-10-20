@@ -4,7 +4,7 @@ Agrupa tablero, modo y metricas en un objeto, en vez de usar
 variables globales sueltas en el controlador.
 """
 
-from model.ai_service import MoveResult, choose_move
+from model.ai_service import DIFICULTADES, MoveResult, choose_move
 from model.game_model import (
     RESULT_CONTINUE,
     RESULT_DRAW,
@@ -36,18 +36,19 @@ def _mensaje(resultado, jugador):
 
 
 class GameSession:
-    """Reune el tablero, el modo y las metricas de la ultima IA."""
+    """Reune el tablero, el modo, la dificultad y las metricas."""
 
     def __init__(self):
         """Crea una sesion nueva en modo Humano vs IA Minimax."""
         self.juego = TicTacToeModel()
         self.modo = "hvai"
+        self.dificultad = "dificil"
         self.mensaje = ""
         self.metricas = MoveResult()
         self.reset()
 
     def reset(self):
-        """Reinicia el tablero y las metricas conservando el modo."""
+        """Reinicia el tablero y las metricas conservando la config."""
         self.juego.reset()
         self.mensaje = ""
         self.metricas = MoveResult()
@@ -59,6 +60,18 @@ class GameSession:
             modo: 'hvh', 'hvai' o 'hvml'; otro valor cae en 'hvai'.
         """
         self.modo = modo if modo in MODOS else "hvai"
+        self.reset()
+
+    def set_dificultad(self, dificultad):
+        """Cambia la dificultad de Minimax y reinicia la partida.
+
+        Args:
+            dificultad: 'facil', 'medio' o 'dificil'; otro valor
+                cae en 'dificil'.
+        """
+        if dificultad not in DIFICULTADES:
+            dificultad = "dificil"
+        self.dificultad = dificultad
         self.reset()
 
     def marcar_invalido(self):
@@ -86,7 +99,7 @@ class GameSession:
             return
         if self.juego.is_game_over():
             return
-        resultado = choose_move(self.juego, self.modo)
+        resultado = choose_move(self.juego, self.modo, self.dificultad)
         self.metricas = resultado
         if resultado.move is None:
             return
@@ -114,8 +127,3 @@ class GameSession:
     def tiempo_ms(self):
         """Milisegundos de la ultima decision de la IA."""
         return self.metricas.tiempo_ms
-
-    @property
-    def ruta(self):
-        """Ids de nodo del arbol ML usados en la ultima decision."""
-        return self.metricas.ruta
